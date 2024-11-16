@@ -3,7 +3,7 @@ package code;
 import java.util.List;
 import java.util.Scanner;
 
-public class Main {
+public class LexerTest {
     public static void main(String[] args) {
         // 提示用户输入代码
         System.out.println("请输入代码（以单独一行的 '/' 结束）：");
