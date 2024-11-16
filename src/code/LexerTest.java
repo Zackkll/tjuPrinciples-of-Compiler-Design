@@ -3,18 +3,17 @@ package code;
 import java.util.List;
 import java.util.Scanner;
 
-public class Main {
+public class LexerTest {
     public static void main(String[] args) {
         // 提示用户输入代码
-        System.out.println("请输入代码（以 ';' 结束）：");
+        System.out.println("请输入代码（以单独一行的 '/' 结束）：");
         Scanner scanner = new Scanner(System.in);
 
-        // 读取用户输入的完整代码行
+        // 读取用户输入的完整代码
         StringBuilder codeBuilder = new StringBuilder();
         while (scanner.hasNextLine()) {
             String line = scanner.nextLine();
-            if (line.trim().endsWith(";")) { // 判断是否以分号结尾
-                codeBuilder.append(line).append("\n");
+            if (line.trim().equals("/")) { // 判断是否为单独一行的/的结束
                 break;
             }
             codeBuilder.append(line).append("\n");
