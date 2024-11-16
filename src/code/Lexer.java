@@ -11,36 +11,33 @@ public class Lexer {
     private static final String FLOAT = "\\d+\\.\\d+"; // 将FLOAT提前到INT之前
     private static final String INT = "\\d+";
     private static final String CHAR = "'[^']'";
-    private static final String STRING = "\"[^\"]*\"";
 
+
+    //定义TOKEN序列，就是将要
     private List<Token> tokens = new ArrayList<>();
-    private SymbolTable symbolTable = new SymbolTable();
 
     public List<Token> analyze(String code) {
-        String regex = String.format("(%s)|(%s)|(%s)|(%s)|(%s)|(%s)|(%s)|(%s)",
-                KEYWORDS, OPERATORS, SEPARATORS, IDENTIFIER, FLOAT, INT, CHAR, STRING);
-        Pattern pattern = Pattern.compile(regex);
+        String regex = String.format("(%s)|(%s)|(%s)|(%s)|(%s)|(%s)|(%s)",
+                KEYWORDS, OPERATORS, SEPARATORS, IDENTIFIER, FLOAT, INT, CHAR);
+        Pattern pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
         Matcher matcher = pattern.matcher(code);
 
         while (matcher.find()) {
             String token = matcher.group();
-            if (token.matches(KEYWORDS)) {
-                tokens.add(new Token("KEYWORD", token));
-            } else if (token.matches(OPERATORS)) {
-                tokens.add(new Token("OPERATOR", token));
+            if (token.matches("(?i)" + KEYWORDS)) {
+                tokens.add(new Token("KW", token));
+            } else if (token.matches("(?i)" + OPERATORS)) {
+                tokens.add(new Token("OP", token));
             } else if (token.matches(SEPARATORS)) {
-                tokens.add(new Token("SEPARATOR", token));
+                tokens.add(new Token("SE", token));
             } else if (token.matches(IDENTIFIER)) {
                 tokens.add(new Token("IDN", token));
-                symbolTable.add(token, "unknown");
             } else if (token.matches(FLOAT)) {
                 tokens.add(new Token("FLOAT", token)); // 识别浮点数
             } else if (token.matches(INT)) {
                 tokens.add(new Token("INT", token)); // 识别整数
             } else if (token.matches(CHAR)) {
                 tokens.add(new Token("CHAR", token));
-            } else if (token.matches(STRING)) {
-                tokens.add(new Token("STRING", token));
             }
         }
         return tokens;

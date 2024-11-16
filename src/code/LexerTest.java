@@ -22,10 +22,16 @@ public class LexerTest {
 
         // 创建 Lexer 并对用户输入的代码进行词法分析
         Lexer lexer = new Lexer();
+        //定义输出符号表
         List<Token> tokens = lexer.analyze(code);
 
         // 输出 Token 类型和值
         System.out.println("词法分析结果：");
-        tokens.forEach(token -> System.out.println(token.type + ": " + token.value));
+
+        //输出符号表，符号表为tokens中的每个token的toString的结果
+        for (Token token : tokens) {
+            System.out.println(token.toString());
+        }
+
     }
 }
