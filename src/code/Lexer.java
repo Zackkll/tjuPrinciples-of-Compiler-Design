@@ -8,8 +8,8 @@ public class Lexer {
     private static final String OPERATORS = "\\+\\+|--|\\+=|-=|\\*=|/=|%=|==|<=|>=|!=|&&|\\|\\||[+\\-*/%<>=]";
     private static final String SEPARATORS = "[(){};,\\[\\]]";
     private static final String IDENTIFIER = "[a-zA-Z_][a-zA-Z0-9_]*";
+    private static final String FLOAT = "\\d+\\.\\d+"; // 将FLOAT提前到INT之前
     private static final String INT = "\\d+";
-    private static final String FLOAT = "\\d+\\.\\d+";
     private static final String CHAR = "'[^']'";
     private static final String STRING = "\"[^\"]*\"";
 
@@ -18,7 +18,7 @@ public class Lexer {
 
     public List<Token> analyze(String code) {
         String regex = String.format("(%s)|(%s)|(%s)|(%s)|(%s)|(%s)|(%s)|(%s)",
-            KEYWORDS, OPERATORS, SEPARATORS, IDENTIFIER, INT, FLOAT, CHAR, STRING);
+                KEYWORDS, OPERATORS, SEPARATORS, IDENTIFIER, FLOAT, INT, CHAR, STRING);
         Pattern pattern = Pattern.compile(regex);
         Matcher matcher = pattern.matcher(code);
 
@@ -33,10 +33,10 @@ public class Lexer {
             } else if (token.matches(IDENTIFIER)) {
                 tokens.add(new Token("IDN", token));
                 symbolTable.add(token, "unknown");
-            } else if (token.matches(INT)) {
-                tokens.add(new Token("INT", token));
             } else if (token.matches(FLOAT)) {
-                tokens.add(new Token("FLOAT", token));
+                tokens.add(new Token("FLOAT", token)); // 识别浮点数
+            } else if (token.matches(INT)) {
+                tokens.add(new Token("INT", token)); // 识别整数
             } else if (token.matches(CHAR)) {
                 tokens.add(new Token("CHAR", token));
             } else if (token.matches(STRING)) {

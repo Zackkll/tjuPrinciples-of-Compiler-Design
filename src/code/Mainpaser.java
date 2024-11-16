@@ -5,6 +5,7 @@ public class Mainpaser {
         String code = "int x = 5; float y = 1.1;";
         Lexer lexer = new Lexer();
         List<Token> tokens = lexer.analyze(code);
+        //System.out.println(tokens); // 打印token列表
 
         Parser parser = new Parser(tokens);
         parser.parse();

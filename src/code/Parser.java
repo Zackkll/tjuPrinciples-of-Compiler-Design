@@ -43,7 +43,7 @@ public class Parser {
     private void expression() {
         term();
         while (match("OPERATOR", "+") || match("OPERATOR", "-") ||
-               match("OPERATOR", "*") || match("OPERATOR", "/")) { // 支持四则运算
+                match("OPERATOR", "*") || match("OPERATOR", "/")) { // 支持四则运算
             term();
         }
     }
@@ -57,7 +57,6 @@ public class Parser {
         }
         throw new RuntimeException("Unexpected token: " + peek().value);
     }
-
 
     private boolean match(String type) {
         if (current < tokens.size() && peek().type.equals(type)) {
@@ -74,7 +73,6 @@ public class Parser {
         }
         return false;
     }
-
 
     private void consume(String type) {
         if (!match(type)) {
