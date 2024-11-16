@@ -4,9 +4,9 @@ import java.util.*;
 import java.util.regex.*;
 
 public class Lexer {
-    private static final String KEYWORDS = "while|for|continue|break|if|else|float|int|char|void|return";
+    private static final String KEYWORDS = "while|for|continue|break|if|else|float|int|char|void|return|const|main|struct|union|switch|case|default";
     private static final String OPERATORS = "\\+\\+|--|\\+=|-=|\\*=|/=|%=|==|<=|>=|!=|&&|\\|\\||[+\\-*/%<>=]";
-    private static final String SEPARATORS = "[(){};,\\[\\]]";
+    private static final String SEPARATORS = "[(){};,\\[\\]:]";
     private static final String IDENTIFIER = "[a-zA-Z_][a-zA-Z0-9_]*";
     private static final String FLOAT = "\\d+\\.\\d+"; // 将FLOAT提前到INT之前
     private static final String INT = "\\d+";
