@@ -30,8 +30,8 @@ public class Lexer {
     public Lexer() {
         // 使用 NFA 生成器创建初始 NFA
         NFAGenerator nfaGenerator = new NFAGenerator();
-        State combinedStartState = new State(0);
-        Set<State> finalStates = new HashSet<>();
+        NFAState combinedStartState = new NFAState(0);
+        Set<NFAState> finalStates = new HashSet<>();
         Set<Character> alphabet = new HashSet<>();
 
         // 构建所有的 NFA 并合并
