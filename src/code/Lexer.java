@@ -1,45 +1,85 @@
 package code;
 
+
 import java.util.*;
-import java.util.regex.*;
 
 public class Lexer {
     private static final String KEYWORDS = "while|for|continue|break|if|else|float|int|char|void|return|const|main|struct|union|switch|case|default";
     private static final String OPERATORS = "\\+\\+|--|\\+=|-=|\\*=|/=|%=|==|<=|>=|!=|&&|\\|\\||[+\\-*/%<>=]";
     private static final String SEPARATORS = "[(){};,\\[\\]:]";
     private static final String IDENTIFIER = "[a-zA-Z_][a-zA-Z0-9_]*";
-    private static final String FLOAT = "\\d+\\.\\d+"; // 将FLOAT提前到INT之前
+    private static final String FLOAT = "\\d+\\.\\d+";
     private static final String INT = "\\d+";
     private static final String CHAR = "'[^']'";
 
+    // 定义所有可能的正则表达式
+    private static final Map<String, String> REGEX_MAP = Map.of(
+            "KW", KEYWORDS,
+            "OP", OPERATORS,
+            "SE", SEPARATORS,
+            "IDN", IDENTIFIER,
+            "FLOAT", FLOAT,
+            "INT", INT,
+            "CHAR", CHAR
+    );
 
-    //定义TOKEN序列，就是将要
-    private List<Token> tokens = new ArrayList<>();
+    // DFA 状态机
+    private DFAState startDFAState;
 
-    public List<Token> analyze(String code) {
-        String regex = String.format("(%s)|(%s)|(%s)|(%s)|(%s)|(%s)|(%s)",
-                KEYWORDS, OPERATORS, SEPARATORS, IDENTIFIER, FLOAT, INT, CHAR);
-        Pattern pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
-        Matcher matcher = pattern.matcher(code);
+    // 初始化 Lexer
+    public Lexer() {
+        // 使用 NFA 生成器创建初始 NFA
+        NFAGenerator nfaGenerator = new NFAGenerator();
+        State combinedStartState = new State(0);
+        Set<State> finalStates = new HashSet<>();
+        Set<Character> alphabet = new HashSet<>();
 
-        while (matcher.find()) {
-            String token = matcher.group();
-            if (token.matches("(?i)" + KEYWORDS)) {
-                tokens.add(new Token("KW", token));
-            } else if (token.matches("(?i)" + OPERATORS)) {
-                tokens.add(new Token("OP", token));
-            } else if (token.matches(SEPARATORS)) {
-                tokens.add(new Token("SE", token));
-            } else if (token.matches(IDENTIFIER)) {
-                tokens.add(new Token("IDN", token));
-            } else if (token.matches(FLOAT)) {
-                tokens.add(new Token("FLOAT", token)); // 识别浮点数
-            } else if (token.matches(INT)) {
-                tokens.add(new Token("INT", token)); // 识别整数
-            } else if (token.matches(CHAR)) {
-                tokens.add(new Token("CHAR", token));
+        // 构建所有的 NFA 并合并
+        for (Map.Entry<String, String> entry : REGEX_MAP.entrySet()) {
+            NFA nfa = nfaGenerator.generateFromRegex(entry.getValue());
+            combinedStartState.addTransition('\0', nfa.startState);
+            finalStates.addAll(nfa.finalStates);
+
+            // 将正则表达式中的字符加入 alphabet
+            for (char ch : entry.getValue().toCharArray()) {
+                if (ch != '\\' && ch != '|' && ch != '(' && ch != ')' && ch != '[' && ch != ']' && ch != '*') {
+                    alphabet.add(ch);
+                }
             }
         }
+
+        NFA combinedNFA = new NFA(combinedStartState, finalStates);
+
+        // 确定化 NFA 为 DFA
+        NFAtoDFAConverter converter = new NFAtoDFAConverter();
+        DFAState dfaStartState = converter.convertToDFA(combinedNFA.startState, alphabet);
+
+        // 最小化 DFA
+        DFAMinimizer minimizer = new DFAMinimizer();
+        this.startDFAState = minimizer.minimizeDFA(dfaStartState, alphabet);
+    }
+
+    // 使用 DFA 进行词法分析
+    public List<Token> analyze(String code) {
+        List<Token> tokens = new ArrayList<>();
+        DFAState currentState = startDFAState;
+        StringBuilder buffer = new StringBuilder();
+
+        for (char ch : code.toCharArray()) {
+            DFAState nextState = currentState.transitions.get(ch);
+            if (nextState != null) {
+                buffer.append(ch);
+                currentState = nextState;
+            } else {
+                // 识别到完整的 token
+                if (currentState.isFinal) {
+                    tokens.add(new Token("UNKNOWN", buffer.toString()));
+                    buffer.setLength(0);
+                }
+                currentState = startDFAState; // 重置到初始状态
+            }
+        }
+
         return tokens;
     }
 }
