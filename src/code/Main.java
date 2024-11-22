@@ -23,11 +23,11 @@ public class Main {
 
         // 调用 Lexer 对输入的代码进行词法分析
         Lexer lexer = new Lexer();
-        List<Token> tokens = lexer.tokenize(sourceCode);
+        List<String> tokens = lexer.tokenize(sourceCode);
 
         // 输出分析结果
         System.out.println("词法分析结果：");
-        for (Token token : tokens) {
+        for (String token : tokens) {
             System.out.println(token);
         }
     }
