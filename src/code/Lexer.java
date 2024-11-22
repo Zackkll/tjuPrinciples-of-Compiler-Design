@@ -1,8 +1,13 @@
 package code;
+
 import java.util.*;
-import java.util.regex.*;
 
 public class Lexer {
+    // 状态定义
+    private enum State {
+        START, IDENTIFIER, INTEGER, FLOAT, CHAR, STRING, OPERATOR, SEPARATOR, ERROR
+    }
+
     // 关键字表
     private static final Map<String, String> KEYWORDS = Map.of(
             "int", "1", "float", "2", "char", "3", "void", "4",
@@ -19,45 +24,125 @@ public class Lexer {
             "(", "23", ")", "24", "{", "25", "}", "26", ";", "27", ",", "28"
     );
 
-    // 正则表达式定义
-    private static final Pattern IDENTIFIER = Pattern.compile("[a-zA-Z_][a-zA-Z0-9_]*");
-    private static final Pattern INTEGER = Pattern.compile("\\d+");
-    private static final Pattern FLOAT = Pattern.compile("\\d+\\.\\d+");
-    private static final Pattern CHAR = Pattern.compile("'(.)'");
-    private static final Pattern STRING = Pattern.compile("\"(.*?)\"");
-
     public List<String> tokenize(String sourceCode) {
         List<String> output = new ArrayList<>();
+        State state = State.START;
+        StringBuilder tokenBuffer = new StringBuilder();
+        char[] chars = sourceCode.toCharArray();
 
-        // 预处理：分隔标点符号
-        sourceCode = sourceCode.replaceAll("([{}(),;=<>!+*/%-])", " $1 ");
+        for (int i = 0; i <= chars.length; i++) {
+            char c = i < chars.length ? chars[i] : '\0'; // 用 \0 作为结束标记
 
-        String[] lines = sourceCode.split("\\n");
-        for (String line : lines) {
-            String[] words = line.split("\\s+");
-            for (String word : words) {
-                if (word.isBlank()) continue; // 跳过空字符串
-                if (KEYWORDS.containsKey(word)) {
-                    output.add(word + "\t" + new Token("KW", KEYWORDS.get(word)));
-                } else if (OPERATORS.containsKey(word)) {
-                    output.add(word + "\t" + new Token("OP", OPERATORS.get(word)));
-                } else if (SEPARATORS.containsKey(word)) {
-                    output.add(word + "\t" + new Token("SE", SEPARATORS.get(word)));
-                } else if (IDENTIFIER.matcher(word).matches()) {
-                    output.add(word + "\t" + new Token("IDN", word));
-                } else if (INTEGER.matcher(word).matches()) {
-                    output.add(word + "\t" + new Token("INT", word));
-                } else if (FLOAT.matcher(word).matches()) {
-                    output.add(word + "\t" + new Token("FLOAT", word));
-                } else if (CHAR.matcher(word).matches()) {
-                    output.add(word + "\t" + new Token("CHAR", word));
-                } else if (STRING.matcher(word).matches()) {
-                    output.add(word + "\t" + new Token("STR", word));
-                } else {
-                    throw new RuntimeException("Unrecognized token: " + word);
-                }
+            switch (state) {
+                case START:
+                    if (Character.isWhitespace(c)) {
+                        continue;
+                    } else if (Character.isLetter(c) || c == '_') {
+                        tokenBuffer.append(c);
+                        state = State.IDENTIFIER;
+                    } else if (Character.isDigit(c)) {
+                        tokenBuffer.append(c);
+                        state = State.INTEGER;
+                    } else if (c == '\'') {
+                        tokenBuffer.append(c);
+                        state = State.CHAR;
+                    } else if (c == '\"') {
+                        tokenBuffer.append(c);
+                        state = State.STRING;
+                    } else if (OPERATORS.containsKey(String.valueOf(c))) {
+                        tokenBuffer.append(c);
+                        state = State.OPERATOR;
+                    } else if (SEPARATORS.containsKey(String.valueOf(c))) {
+                        output.add(c + "\t" + new Token("SE", SEPARATORS.get(String.valueOf(c))));
+                    } else if (c == '\0') {
+                        break;
+                    } else {
+                        state = State.ERROR;
+                        tokenBuffer.append(c);
+                    }
+                    break;
+
+                case IDENTIFIER:
+                    if (Character.isLetterOrDigit(c) || c == '_') {
+                        tokenBuffer.append(c);
+                    } else {
+                        String token = tokenBuffer.toString();
+                        if (KEYWORDS.containsKey(token)) {
+                            output.add(token + "\t" + new Token("KW", KEYWORDS.get(token)));
+                        } else {
+                            output.add(token + "\t" + new Token("IDN", token));
+                        }
+                        tokenBuffer.setLength(0);
+                        state = State.START;
+                        i--; // 回退字符
+                    }
+                    break;
+
+                case INTEGER:
+                    if (Character.isDigit(c)) {
+                        tokenBuffer.append(c);
+                    } else if (c == '.') {
+                        tokenBuffer.append(c);
+                        state = State.FLOAT;
+                    } else {
+                        output.add(tokenBuffer.toString() + "\t" + new Token("INT", tokenBuffer.toString()));
+                        tokenBuffer.setLength(0);
+                        state = State.START;
+                        i--; // 回退字符
+                    }
+                    break;
+
+                case FLOAT:
+                    if (Character.isDigit(c)) {
+                        tokenBuffer.append(c);
+                    } else {
+                        output.add(tokenBuffer.toString() + "\t" + new Token("FLOAT", tokenBuffer.toString()));
+                        tokenBuffer.setLength(0);
+                        state = State.START;
+                        i--; // 回退字符
+                    }
+                    break;
+
+                case CHAR:
+                    if (c == '\'') {
+                        tokenBuffer.append(c);
+                        output.add(tokenBuffer.toString() + "\t" + new Token("CHAR", tokenBuffer.toString()));
+                        tokenBuffer.setLength(0);
+                        state = State.START;
+                    } else {
+                        tokenBuffer.append(c);
+                    }
+                    break;
+
+                case STRING:
+                    tokenBuffer.append(c);
+                    if (c == '\"') {
+                        output.add(tokenBuffer.toString() + "\t" + new Token("STR", tokenBuffer.toString()));
+                        tokenBuffer.setLength(0);
+                        state = State.START;
+                    }
+                    break;
+
+                case OPERATOR:
+                    String currentToken = tokenBuffer.toString();
+                    if (OPERATORS.containsKey(currentToken + c)) {
+                        tokenBuffer.append(c);
+                    } else {
+                        output.add(tokenBuffer.toString() + "\t" + new Token("OP", OPERATORS.get(currentToken)));
+                        tokenBuffer.setLength(0);
+                        state = State.START;
+                        i--; // 回退字符
+                    }
+                    break;
+
+                case ERROR:
+                    throw new RuntimeException("Unrecognized token: " + tokenBuffer.toString());
+
+                default:
+                    throw new IllegalStateException("Unexpected state: " + state);
             }
         }
+
         return output;
     }
 }
