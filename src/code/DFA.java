@@ -1,49 +1,22 @@
 package code;
 import java.util.*;
 import java.util.regex.Pattern;
+
+import static code.Token.*;
+
 public class DFA {
 
-
-    public static final Map<String, Integer> TYPE_TO_CONTENT_DICT_KW = new HashMap<String, Integer>() {
-        {
-            put("int", 1);
-            put("void", 2);
-            put("return", 3);
-            put("const", 4);
-            put("main", 5);
-        }
-    };
-    private static final Map<String, Integer> TYPE_TO_CONTENT_DICT_OP = new HashMap<String, Integer>() {
-        {
-            put("+", 6);
-            put("-", 7);
-            put("*", 8);
-            put("/", 9);
-            put("%", 10);
-            put("=", 11);
-            put(">", 12);
-            put("<", 13);
-            put("==", 14);
-            put("<=", 15);
-            put(">=", 16);
-            put("!=", 17);
-            put("&&", 18);
-            put("||", 19);
-        }
-    };
-    public static final Map<String, Integer> TYPE_TO_CONTENT_DICT_SE = new HashMap<String, Integer>() {{
-        put("(", 20);
-        put(")", 21);
-        put("{", 22);
-        put("}", 23);
-        put(";", 24);
-        put(",", 25);
-    }};
     public ArrayList<Node> nodeList = new ArrayList<>();
     public ArrayList<Edge> edgeList = new ArrayList<>();
     public NFA nfa;
     int nowId;
     int startId;
+    public String[] tags = {
+            "[+]", "-", "[*]", "/", "%", "=", "[(]", "[)]", "[{]", "[}]", ";", ",",
+            ">", "[^=]", "<", "[|]", "&", "[_a-zA-Z]", "[_0-9a-zA-Z]", "[^_0-9a-zA-Z]",
+            "[1-9]", "[0-9]", "[^0-9]", "!",
+            "[0-9]+\\.[0-9]*",
+    };
 
 
     public DFA(NFA nfa) {
@@ -92,7 +65,7 @@ public class DFA {
         int nowId = 0;
         while (pointer < nodeArrayList.size()) {
             TreeSet<Node> nodeSet = nodeArrayList.get(pointer);
-            for (String tag : nfa.tags) {
+            for (String tag : tags) {
                 TreeSet<Node> moveNodeSet = move(epsilonClosure(nodeSet), tag);
                 if (moveNodeSet.isEmpty())
                     continue;
@@ -100,7 +73,7 @@ public class DFA {
                     nodeArrayList.add(moveNodeSet);
                     Node firstInSet = moveNodeSet.first();
                     nowId++;
-                    nodeList.add(new Node(nowId, firstInSet.isLast, firstInSet.needRollback, firstInSet.type));
+                    nodeList.add(new Node(nowId, firstInSet.isFinal, firstInSet.needRollback, firstInSet.type));
                     edgeList.add(new Edge(pointer, nowId, tag));
                 } else {
                     int toNewNodeId = nodeArrayList.indexOf(moveNodeSet);
@@ -119,7 +92,7 @@ public class DFA {
         TreeSet<Node> F = new TreeSet<>();
         TreeSet<Node> NF = new TreeSet<>();
         for (Node n : nodeList) {
-            if (n.isLast) F.add(n);
+            if (n.isFinal) F.add(n);
             else NF.add(n);
         }
         P.add(F);
@@ -131,7 +104,7 @@ public class DFA {
             TreeSet<Node> A = W.get(0);
             W.remove(0);
             TreeSet<Node> premove = new TreeSet<>();
-            for (String tag : nfa.tags) {
+            for (String tag : tags) {
                 ArrayList<TreeSet<Node>> X = new ArrayList<>();
                 for (TreeSet<Node> p : P) {
                     TreeSet<Node> pTag = new TreeSet<>();
@@ -169,7 +142,7 @@ public class DFA {
         for (int i = 0; i < P.size(); i++) {
             TreeSet<Node> p = P.get(i);
             Node firstInSet = p.first();
-            newNodeList.add(new Node(i, firstInSet.isLast, firstInSet.needRollback, firstInSet.type));
+            newNodeList.add(new Node(i, firstInSet.isFinal, firstInSet.needRollback, firstInSet.type));
         }
         for (Edge e : edgeList) {
             int fromNodeId = 0;
@@ -197,7 +170,7 @@ public class DFA {
         for (Edge e : edgeList) {
             sb.append(e.fromNodeId);
             sb.append("(");
-            sb.append(nodeList.get(e.fromNodeId).isLast + ",");
+            sb.append(nodeList.get(e.fromNodeId).isFinal + ",");
             sb.append(nodeList.get(e.fromNodeId).needRollback + ",");
             sb.append(nodeList.get(e.fromNodeId).type);
             sb.append(")----- ");
@@ -205,7 +178,7 @@ public class DFA {
             sb.append(" ----->");
             sb.append(e.toNodeId);
             sb.append("(");
-            sb.append(nodeList.get(e.toNodeId).isLast + ",");
+            sb.append(nodeList.get(e.toNodeId).isFinal + ",");
             sb.append(nodeList.get(e.toNodeId).needRollback + ",");
             sb.append(nodeList.get(e.toNodeId).type + ")");
             sb.append("\n");
@@ -227,7 +200,7 @@ public class DFA {
     }
 
     public boolean isFinal(int id) {
-        return nodeList.get(id).isLast;
+        return nodeList.get(id).isFinal;
     }
 
     public boolean isBackOff(int id) {
@@ -242,8 +215,8 @@ public class DFA {
         if (node_tag.equals("OP") || node_tag.equals("SE") || node_tag.equals("INT")) {
             return node_tag;
         } else if (node_tag.equals("IDNorKWorOP")) {
-            Set<String> keywords = TYPE_TO_CONTENT_DICT_KW.keySet();
-            Set<String> ops = TYPE_TO_CONTENT_DICT_OP.keySet();
+            Set<String> keywords = KW.keySet();
+            Set<String> ops = OP.keySet();
             if (keywords.contains(token)) {
                 return "KW";
             } else if (ops.contains(token)) {
@@ -260,12 +233,12 @@ public class DFA {
         if (token_type == "IDN" || token_type == "INT") {
             return token;
         } else if (token_type == "KW") {
-            return TYPE_TO_CONTENT_DICT_KW.get(token).toString();
+            return KW.get(token).toString();
         } else if (token_type == "OP") {
-            return TYPE_TO_CONTENT_DICT_OP.get(token).toString();
+            return OP.get(token).toString();
         } else if (token_type == "SE") {
             //System.out.println(token);
-            return TYPE_TO_CONTENT_DICT_SE.get(token).toString();
+            return SE.get(token).toString();
         }
         return "error";
     }

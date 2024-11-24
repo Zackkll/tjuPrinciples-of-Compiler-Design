@@ -6,6 +6,7 @@ import java.util.ArrayList;
  * @Description:
  */
 public class TokenTable {
+
     private ArrayList<Token> tokens;
 
     public TokenTable() {

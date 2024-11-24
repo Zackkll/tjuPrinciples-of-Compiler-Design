@@ -7,11 +7,9 @@ import java.util.ArrayList;
 public class NFA {
     public ArrayList<Node> nodeList = new ArrayList<>();
     public ArrayList<Edge> edgeList = new ArrayList<>();
-    public String[] tags = {
-            "[+]", "-", "[*]", "/", "%", "=", "[(]", "[)]", "[{]", "[}]", ";", ",",
-            ">", "[^=]", "<", "[|]", "&", "[_a-zA-Z]", "[_0-9a-zA-Z]", "[^_0-9a-zA-Z]",
-            "[1-9]", "[0-9]", "[^0-9]","!"
-    };
+
+
+
 
     public NFA() {
         String[] directOP = {"[+]", "-", "[*]", "/", "%", "="};
@@ -71,12 +69,10 @@ public class NFA {
         nodeList.add(new Node(28, true, false, "OP"));
         edgeList.add(new Edge(27, 28, "="));
 
-
         nodeList.add(new Node(29, true, false, "OP"));
         edgeList.add(new Edge(6, 29, "="));
         nodeList.add(new Node(30, true, true, "OP"));
         edgeList.add(new Edge(6, 30, "[^=]"));
-
     }
 
     public String toString() {
@@ -84,7 +80,7 @@ public class NFA {
         for (Edge e : edgeList) {
             sb.append(e.fromNodeId);
             sb.append("(");
-            sb.append(nodeList.get(e.fromNodeId).isLast + ",");
+            sb.append(nodeList.get(e.fromNodeId).isFinal + ",");
             sb.append(nodeList.get(e.fromNodeId).needRollback + ",");
             sb.append(nodeList.get(e.fromNodeId).type);
             sb.append(")----- ");
@@ -92,7 +88,7 @@ public class NFA {
             sb.append(" ----->");
             sb.append(e.toNodeId);
             sb.append("(");
-            sb.append(nodeList.get(e.toNodeId).isLast + ",");
+            sb.append(nodeList.get(e.toNodeId).isFinal + ",");
             sb.append(nodeList.get(e.toNodeId).needRollback + ",");
             sb.append(nodeList.get(e.toNodeId).type + ")");
             sb.append("\n");
