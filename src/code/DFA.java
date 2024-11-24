@@ -11,6 +11,8 @@ public class DFA {
             put("return", 3);
             put("const", 4);
             put("main", 5);
+            put("float",26);
+            put("char",26);
         }
     };
     private static final Map<String, Integer> TYPE_TO_CONTENT_DICT_OP = new HashMap<String, Integer>() {

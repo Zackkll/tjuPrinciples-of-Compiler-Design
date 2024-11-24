@@ -8,7 +8,7 @@ public class Main {
         // TODO Auto-generated method stub
         //默认是当前工程文件夹
         String dir = "src/Tests/";
-        String in = "test1.c";
+        String in = "test2.c";
         String out = "5lex.tsv";
 
         ReadTxt r = new ReadTxt();

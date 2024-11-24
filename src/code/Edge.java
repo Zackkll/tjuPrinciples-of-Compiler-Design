@@ -1,7 +1,7 @@
 package code;
 
 
-/**
+/*
  * @Description: NFA中的边
  */
 public class Edge {
