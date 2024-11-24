@@ -7,17 +7,16 @@ import java.util.ArrayList;
 public class NFA {
     public ArrayList<Node> nodeList = new ArrayList<>();
     public ArrayList<Edge> edgeList = new ArrayList<>();
-    public String[] tags = {
-            "[+]", "-", "[*]", "/", "%", "=", "[(]", "[)]", "[{]", "[}]", ";", ",",
-            ">", "[^=]", "<", "[|]", "&", "[_a-zA-Z]", "[_0-9a-zA-Z]", "[^_0-9a-zA-Z]",
-            "[1-9]", "[0-9]", "[^0-9]","!"
-    };
+
+
+
 
     public NFA() {
         String[] directOP = {"[+]", "-", "[*]", "/", "%", "="};
         String[] SE = {"[(]", "[)]", "[{]", "[}]", ";", ","};
         nodeList.add(new Node(0, false, false, ""));
         edgeList.add(new Edge(0, 0, "epsilon"));
+
         for (int i = 1; i < 6; i++) {
             nodeList.add(new Node(i, true, false, "OP"));
             edgeList.add(new Edge(0, i, directOP[i - 1]));
@@ -30,6 +29,7 @@ public class NFA {
             nodeList.add(new Node(i + 6, true, false, "SE"));
             edgeList.add(new Edge(0, i + 6, SE[i - 1]));
         }
+
         nodeList.add(new Node(13, false, false, ""));
         edgeList.add(new Edge(0, 13, ">"));
         nodeList.add(new Node(14, true, false, "OP"));
@@ -71,20 +71,35 @@ public class NFA {
         nodeList.add(new Node(28, true, false, "OP"));
         edgeList.add(new Edge(27, 28, "="));
 
-
         nodeList.add(new Node(29, true, false, "OP"));
         edgeList.add(new Edge(6, 29, "="));
         nodeList.add(new Node(30, true, true, "OP"));
         edgeList.add(new Edge(6, 30, "[^=]"));
 
+        // 添加对 ":" 的识别
+        nodeList.add(new Node(31, false, false, "")); // 中间节点
+        nodeList.add(new Node(32, true, true, "SE")); // 最终节点
+        edgeList.add(new Edge(0, 31, ":")); // 初始到中间
+        edgeList.add(new Edge(31, 32, "epsilon")); // 中间到最终
+
+        // 添加对小数的识别
+        nodeList.add(new Node(33, false, false, "")); // 起始小数节点
+        nodeList.add(new Node(34, false, false, "")); // 识别到小数点
+        nodeList.add(new Node(35, true, true, "FLOAT")); // 最终合法小数节点
+        edgeList.add(new Edge(0, 33, "[0-9]")); // 初始到数字
+        edgeList.add(new Edge(33, 33, "[0-9]")); // 继续匹配数字
+        edgeList.add(new Edge(33, 34, "[.]")); // 数字后的小数点
+        edgeList.add(new Edge(34, 35, "[0-9]")); // 小数点后至少一个数字
+        edgeList.add(new Edge(35, 35, "[0-9]")); // 小数后继续匹配数字
     }
+
 
     public String toString() {
         StringBuffer sb = new StringBuffer();
         for (Edge e : edgeList) {
             sb.append(e.fromNodeId);
             sb.append("(");
-            sb.append(nodeList.get(e.fromNodeId).isLast + ",");
+            sb.append(nodeList.get(e.fromNodeId).isFinal + ",");
             sb.append(nodeList.get(e.fromNodeId).needRollback + ",");
             sb.append(nodeList.get(e.fromNodeId).type);
             sb.append(")----- ");
@@ -92,7 +107,7 @@ public class NFA {
             sb.append(" ----->");
             sb.append(e.toNodeId);
             sb.append("(");
-            sb.append(nodeList.get(e.toNodeId).isLast + ",");
+            sb.append(nodeList.get(e.toNodeId).isFinal + ",");
             sb.append(nodeList.get(e.toNodeId).needRollback + ",");
             sb.append(nodeList.get(e.toNodeId).type + ")");
             sb.append("\n");

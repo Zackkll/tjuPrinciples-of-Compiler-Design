@@ -4,13 +4,13 @@ package code;
  */
 public class Node implements Comparable<Node> {
     public int id;
-    public boolean isLast;
+    public boolean isFinal;
     public boolean needRollback;
     public String type;
 
-    public Node(int id, boolean isLast, boolean needRollback, String type) {
+    public Node(int id, boolean isFinal, boolean needRollback, String type) {
         this.id = id;
-        this.isLast = isLast;
+        this.isFinal = isFinal;
         this.needRollback = needRollback;
         this.type = type;
     }

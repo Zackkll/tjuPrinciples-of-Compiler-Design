@@ -56,6 +56,7 @@ class Lexer {
                 System.out.println(ch);
                 System.out.println("Lexical error: 不符合c--词法！");
                 return;
+
             }
         }
 
