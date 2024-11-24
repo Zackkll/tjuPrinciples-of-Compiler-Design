@@ -25,15 +25,21 @@ public class Lexer {
     private static final Map<String, String> OPERATORS;
     static {
         OPERATORS = new HashMap<>();
+        OPERATORS.put("!", "8");
         OPERATORS.put("+", "9");
         OPERATORS.put("-", "10");
         OPERATORS.put("*", "11");
         OPERATORS.put("/", "12");
+        OPERATORS.put("%", "13");
+        OPERATORS.put("=", "14");
         OPERATORS.put(">", "15");
         OPERATORS.put("<", "16");
         OPERATORS.put("==", "17");
+        OPERATORS.put("<=", "18");
+        OPERATORS.put(">=", "19");
         OPERATORS.put("!=", "20");
-        OPERATORS.put("=", "11");
+        OPERATORS.put("&&", "21");
+        OPERATORS.put("||", "22");
     }
 
     // 界符表
@@ -46,7 +52,7 @@ public class Lexer {
         SEPARATORS.put("}", "26");
         SEPARATORS.put(";", "27");
         SEPARATORS.put(",", "28");
-        SEPARATORS.put(":", "32");  // Add colon as separator
+        SEPARATORS.put(":", "32");
     }
 
     // 正则表达式定义

@@ -8,9 +8,15 @@ x   <IDN,x>
 =   <OP,14>
 2   <INT,2>
 ;   <SE,27>
-float   <KW,2>
+int   <KW,1>
 y   <IDN,y>
 =   <OP,14>
 3   <INT,3>
 ;   <SE,27>
-}   <SE,26>
+switch   <KW,31>
+(   <SE,23>
+x   <IDN,x>
+)   <SE,24>
+{   <SE,25>
+case   <KW,32>
+1   <INT,1>

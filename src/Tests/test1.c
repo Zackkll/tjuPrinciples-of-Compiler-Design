@@ -1,6 +1,6 @@
 int main() {
  int x = 2;
- int y = 3;
+float y = 3.3;
  switch (x) {
  case 1: {
  y = 10; // 简单语句
